@@ -1,20 +1,33 @@
 #include <vector>
 #include <iostream>
+#include <stdbool.h>
+#include <emscripten/bind.h>
+#include <emscripten/emscripten.h>
 using namespace std;
- 
+
 // dp[i][j] is going to store true if sum j is
 // possible with array elements from 0 to i.
-bool** dp;
+bool ** dp;
+
+int32_t** results;
+int lastRow;
+int lastCol;
 
 
-void fillArray(uint32_t* a, uint32_t len);
+void fillArray(int32_t* a, int32_t len);
 
 extern "C"{
     void display(const vector<int>& v)
     {
-        for (int i = 0; i < v.size(); ++i)
+        for (int i = 0; i < v.size(); ++i){
             printf("%d ", v[i]);
+            results[lastRow][lastCol] = v[i];
+            lastCol ++;
+        }
         printf("\n");
+        lastRow ++;
+        lastCol = 0;
+        
     }
 }
 
@@ -22,7 +35,7 @@ extern "C"{
 // A recursive function to print all subsets with the
 // help of dp[][]. Vector p[] stores current subset.
 extern "C"{
-    void printSubsetsRec(uint32_t* arr, int i, int sum, vector<int>& p)
+    void printSubsetsRec(int32_t* arr, int i, int sum, vector<int>& p)
     {
         // If we reached end and sum is non-zero. We print
         // p[] only if arr[0] is equal to sun OR dp[0][sum]
@@ -65,10 +78,15 @@ extern "C"{
  
 // Prints all subsets of arr[0..n-1] with sum 0.
 extern "C"{
-    void printAllSubsets(uint32_t* arr, int n, int sum)
+    //EMSCRIPTEN_KEEPALIVE
+    int printAllSubsets(int32_t** resultArray, int32_t* targetArray, int n, int sum)
     {
+        results = resultArray;
+        lastRow = 0;
+        lastCol = 0;
+
         if (n == 0 || sum < 0)
-        return;
+        return 2;
     
         // Sum 0 can always be achieved with 0 elements
         dp = new bool*[n];
@@ -79,28 +97,59 @@ extern "C"{
         }
     
         // Sum arr[0] can be achieved with single element
-        if (arr[0] <= sum)
-        dp[0][arr[0]] = true;
+        if (targetArray[0] <= sum)
+        dp[0][targetArray[0]] = true;
     
         // Fill rest of the entries in dp[][]
         for (int i = 1; i < n; ++i)
             for (int j = 0; j < sum + 1; ++j)
-                dp[i][j] = (arr[i] <= j) ? dp[i-1][j] ||
-                                        dp[i-1][j-arr[i]]
+                dp[i][j] = (targetArray[i] <= j) ? dp[i-1][j] ||
+                                        dp[i-1][j-targetArray[i]]
                                         : dp[i - 1][j];
         if (dp[n-1][sum] == false)
         {
             printf("There are no subsets with sum %d\n", sum);
-            return;
+            return 1;
         }
     
         // Now recursively traverse dp[][] to find all
         // paths from dp[n-1][sum]
         vector<int> p;
-        printSubsetsRec(arr, n-1, sum, p);
+        
+        printSubsetsRec(targetArray, n-1, sum, p);
+        // int resultArrLength = n*(n+1)/2;
+        // for (int i = 0; i < resultArrLength; i++)
+        // {
+        //     for (int j = 0; j < resultArrLength; j++)
+        //     {
+        //         printf("%d ", resultArray[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+        
+        return 0;
     }
 }
 
+extern "C"{
+    void freeMatrix(int32_t ** matrix, int matrixLength){
+        for (int i = 0; i < matrixLength; i++)
+        {
+            free(matrix[i]);
+        }
+        free(matrix);
+    }
+}
+
+
+// typedef std::vector<int32_t> subArray;
+// typedef std::vector<subArray> listOfSubarrays;
+
+// EMSCRIPTEN_BINDINGS(vectors) {
+//   register_vector<listOfSubarrays>("ListArray");
+//   register_vector<subArray>("Array");
+//   function("f_wrapper", &f_wrapper);
+// }
  
 // Driver code
 // int main()

@@ -1,59 +1,142 @@
 import Module from "./glue.js";
 
-const arraySize = 10;
+//para que la cantidad de nueros en el arreglo sea
+// el minimo entre ARRAY_Lngth y el numero mismo
+const ARRAY_LENGTH = 20;
 
-const makePtrOfArray = (myModule, arr) => {
-  const arrayPtr = myModule._calloc(arr.length, 4);
-  arr.forEach((n, idx) => {
-    //console.log(n, idx);
-    myModule.setValue(arrayPtr + idx * 4, n, "i32");
-  });
-  // for (let i = 1; i < arraySize + 1; i++) {
-  //   //let rowsPtr = myModule._calloc(N, 4);
-  //   myModule.setValue(arrayPtr + (i - 1) * 4, i, "i32");
-  //   // for (let j = 0; j < N; j++) {
-  //   //   myModule.setValue(rowsPtr + j * 4, sudokuMatrix[i][j], "i32");
-  //   // }
-  // }
+var mod = null;
+
+document.getElementById("target").onkeypress = function (e) {
+  e.preventDefault();
+};
+document.getElementById("target").onkeydown = function (e) {
+  if (e.keyCode != 38 && e.keyCode != 40) e.preventDefault();
+};
+if (document.addEventListener)
+  document.getElementById("target").addEventListener(
+    "contextmenu",
+    function (e) {
+      e.preventDefault();
+    },
+    false
+  );
+
+const button = document.getElementById("calcBtn");
+button.addEventListener("click", Calculate);
+
+const answers = {
+  0: "Existing Subarrays!",
+  1: "No subarrays available!",
+  2: "Pls enter a valid positive integer",
+};
+
+const makePtrOfArray = (myModule, ogArray, arrLength, dims) => {
+  var arrayPtr = null;
+  // Si la dimension es 1, queremos ahcer un puntero con el TargetArray
+  if (dims === 1) {
+    arrayPtr = myModule._calloc(arrLength, 4);
+    for (let i = 0; i < arrLength; i++) {
+      myModule.setValue(arrayPtr + i * 4, ogArray[i], "i32");
+    }
+  }
+  // Si la dimension es 2, queremos hacer un doble puntero para recibir los resultados (subarreglos)
+  else {
+    arrayPtr = myModule._calloc(arrLength, 4);
+    for (let i = 0; i < arrLength; i++) {
+      var rowsPtr = myModule._calloc(arrLength, 4);
+      myModule.setValue(arrayPtr + i * 4, rowsPtr, "i32");
+      for (let j = 0; j < arrLength; j++) {
+        myModule.setValue(rowsPtr + j * 4, -1, "i32");
+      }
+    }
+  }
+
   return arrayPtr;
 };
 
-// function printAllSubsetsRec(arr, n, v, sum) {
-//   // If remaining sum is 0, then print all
-//   // elements of current subset.
-//   if (sum == 0) {
-//     for (let x of v) console.log(x + " ");
-//     console.log("<br>");
-//     return;
-//   }
+const getArrayFromPtr = (myModule, resultArrPtr, resultArrLength) => {
+  //let resultMatrix = matrix(9, 9);
+  var arr = [];
+  for (let i = 0; i < resultArrLength; i++) {
+    arr.push([]);
+    let rowsPtr = myModule.getValue(resultArrPtr + i * 4, "i32");
+    for (let j = 0; j < resultArrLength; j++) {
+      let val = myModule.getValue(rowsPtr + j * 4, "i32");
+      if (val !== -1) {
+        arr[i].push(val);
+      }
+    }
+  }
+  let final = arr.filter((val) => val.some((v) => true));
+  return final;
+};
 
-//   // If no remaining elements,
-//   if (n == 0) return;
+function calcTargetArray(targetNum, inputLength) {
+  var arr = [];
+  var lenBound = Math.min(targetNum, inputLength);
+  for (let i = 0; i < lenBound; i++) {
+    arr.push(randomInteger(1, Math.max(1, targetNum - 1)));
+  }
+  return arr;
+}
 
-//   // We consider two cases for every element.
-//   // a) We do not include last element.
-//   // b) We include last element in current subset.
-//   printAllSubsetsRec(arr, n - 1, v, sum);
-//   v.push(arr[n - 1]);
-//   printAllSubsetsRec(arr, n - 1, v, sum - arr[n - 1]);
-//   v.pop();
-// }
+function randomInteger(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-// // Wrapper over printAllSubsetsRec()
-// function printAllSubsets(arr, n, sum) {
-//   let v = [];
-//   printAllSubsetsRec(arr, n, v, sum);
-// }
+function Calculate() {
+  // Primero obtenemos el Target Value (Suma) y el  largo deseado del arreglo a generar
+  var targetNum = document.getElementById("target").value;
+  var inputLength = document.getElementById("arrLength").value;
+  // Luego calculamos aleatorio los elementos de ese arreglo y lo mostramos
+  var targetArray = calcTargetArray(targetNum, inputLength);
+  document.getElementById("array").innerHTML = targetArray;
 
-// // Driver code
+  // Hacemos el puntero del arreglo que va a representar al target Array
+  let targetArrayPtr = makePtrOfArray(mod, targetArray, targetArray.length, 1);
 
-// let arr = [1, 2, 3, 4, 5, 6];
-// let sum = 13;
-// let n = arr.length;
-// printAllSubsets(arr, n, sum);
+  // Hacemos el puntero que va a contener al resultado (los subconjuntos)
+  var amountOfSubs = (targetArray.length * (targetArray.length + 1)) / 2;
+  let resultArrPtr = makePtrOfArray(mod, null, amountOfSubs, 2);
+
+  // Le pasamos el puntero doble que recibe el resultado, arreglo target, largo del arreglo target, y Target Value
+  // solver = 0, 1 o 2
+  let solver = mod._printAllSubsets(
+    resultArrPtr,
+    targetArrayPtr,
+    targetArray.length,
+    targetNum
+  );
+  // Mostramos un string de confirmacion
+  var answerString = answers[solver];
+  document.getElementById("answerString").innerHTML = answerString;
+
+  // Si el solver encontro Subarrays, entonces los mostramos
+  if (solver === 0) {
+    var finalArray = getArrayFromPtr(mod, resultArrPtr, amountOfSubs);
+    //console.log(finalArray);
+    displayFinalArray(finalArray);
+  }
+
+  mod._freeMatrix(resultArrPtr, amountOfSubs);
+  mod._free(targetArrayPtr);
+}
+
+function removeAllChildNodes(parent) {
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
+}
+
+const displayFinalArray = (arr) => {
+  var results = document.getElementById("subarrays");
+  removeAllChildNodes(results);
+  arr.forEach((subArr) => {
+    console.log(subArr);
+    results.innerHTML += `<p>${subArr}</p>`;
+  });
+};
 
 Module().then((mymod) => {
-  var arr = [1, 2, 3, 4, 5];
-  let arrPtr = makePtrOfArray(mymod, arr);
-  let solver = mymod._printAllSubsets(arrPtr, arr.length, 6);
+  mod = mymod;
 });
