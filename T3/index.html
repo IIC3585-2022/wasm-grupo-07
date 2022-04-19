@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./styles/style.css" />
+    <title>Split to Sum</title>
+  </head>
+  <body>
+      <form id="frm1" action="Calculate.html">
+        <table width="350px" border="1px">
+            <tr>
+                <th colspan="2">Sub-Array Finder</th>
+            </tr>
+            <tr>
+                <td>Target Sum</td>
+                <td>
+                    <input type="number" id="target" placeholder="" min="1">positive integer</td>
+            </tr>
+            <tr>
+              <td>Array Length</td>
+              <td>
+                  <input type="number" id="arrLength" placeholder="" min="1" max="40">Min between input and Target Sum</td>
+          </tr>
+            <tr>
+                <td>Random Array</td>
+                <td>
+                  <p id="array"></p>
+              </td>
+            </tr>
+            <tr>
+                <td>Any Subarrays?</td>
+                <td>
+                    <p id="answerString"></p>
+                </td>
+            </tr>
+            <tr>
+              <td>Results</td>
+              <td>
+                  <p id="subarrays"></p>
+              </td>
+          </tr>
+        </table>
+        <input type="button" id="calcBtn" value="calculate">
+    <script src="main.js" type="module"></script>
+  </body>
+</html>

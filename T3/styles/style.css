@@ -1,0 +1,37 @@
+#stage {
+  box-shadow: 10px 10px 20px black;
+}
+h1 {
+  text-align: center;
+  font-family: comic sans MS;
+  color: lightgrey;
+}
+body {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  height: 100vh;
+  background: linear-gradient(
+    0deg,
+    rgb(17, 51, 161) 0%,
+    rgb(226, 190, 247) 100%
+  );
+}
+
+div.scrollmenu {
+  background-color: #333;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+div.scrollmenu a {
+  display: inline-block;
+  color: white;
+  text-align: center;
+  padding: 14px;
+  text-decoration: none;
+}
+
+div.scrollmenu a:hover {
+  background-color: #777;
+}
