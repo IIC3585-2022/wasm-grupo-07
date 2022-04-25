@@ -13,9 +13,10 @@ body {
   height: 100vh;
   background: linear-gradient(
     0deg,
-    rgb(17, 51, 161) 0%,
-    rgb(226, 190, 247) 100%
+    rgb(255, 255, 255) 0%,
+    rgb(36, 36, 36) 100%
   );
+  background-repeat: no-repeat;
 }
 
 div.scrollmenu {
@@ -35,3 +36,38 @@ div.scrollmenu a {
 div.scrollmenu a:hover {
   background-color: #777;
 }
+
+table {
+  width: 800px;
+  background-color: rgb(210, 210, 210);
+}
+
+#target {
+  margin: 5px;
+  margin-right: 15px;
+}
+
+#arrLength {
+  margin: 5px;
+  margin-right: 15px;
+}
+
+td p {
+  margin-left: 15px;
+}
+
+div#button{
+  text-align-last: center;
+}
+
+#calcBtn{
+  background-color: #9f9f9f; 
+  border-color: black;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+

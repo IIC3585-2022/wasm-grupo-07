@@ -140,10 +140,13 @@ function removeAllChildNodes(parent) {
 const displayFinalArray = (arr) => {
   var results = document.getElementById("subarrays");
   removeAllChildNodes(results);
+  results.innerHTML = "<p>";
   arr.forEach((subArr) => {
     //console.log(subArr);
-    results.innerHTML += `<p>${subArr}</p>`;
+    results.innerHTML += `${subArr}<br>`;
   });
+
+  results.innerHTML += "</p>";
 };
 
 Module().then((mymod) => {
