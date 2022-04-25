@@ -1,4 +1,7 @@
+//import { isAnyArrayBuffer } from "util/types";
 import Module from "./glue.js";
+import timeParticion from "./solutionJS.js";
+
 
 //para que la cantidad de nueros en el arreglo sea
 // el minimo entre ARRAY_Lngth y el numero mismo
@@ -22,7 +25,10 @@ if (document.addEventListener)
   );
 
 const button = document.getElementById("calcBtn");
-button.addEventListener("click", Calculate);
+button.addEventListener("click", GenArray);
+
+const tArray = document.getElementById("array");
+tArray.addEventListener("onchange", Calculate);
 
 const answers = {
   0: "Existing Subarrays!",
@@ -84,14 +90,14 @@ function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function Calculate() {
+function CalculateC() {
+  // Para calcular el tiempo de ejecucion
+  var start = Date.now();
   // Primero obtenemos el Target Value (Suma) y el  largo deseado del arreglo a generar
   var targetNum = document.getElementById("target").value;
-  var inputLength = document.getElementById("arrLength").value;
-  // Luego calculamos aleatorio los elementos de ese arreglo y lo mostramos
-  var targetArray = calcTargetArray(targetNum, inputLength);
-  document.getElementById("array").innerHTML = targetArray;
-
+  var targetArray = "["+document.getElementById("array").innerHTML+"]";
+  //console.log(targetArray)
+  targetArray = JSON.parse(targetArray);
   // Hacemos el puntero del arreglo que va a representar al target Array
   let targetArrayPtr = makePtrOfArray(mod, targetArray, targetArray.length, 1);
 
@@ -114,12 +120,15 @@ function Calculate() {
   // Si el solver encontro Subarrays, entonces los mostramos
   if (solver === 0) {
     var finalArray = getArrayFromPtr(mod, resultArrPtr, amountOfSubs);
-    //console.log(finalArray);
+    ////console.log(finalArray);
     displayFinalArray(finalArray);
   }
 
   mod._freeMatrix(resultArrPtr, amountOfSubs);
   mod._free(targetArrayPtr);
+
+  var duration = Date.now() - start;
+  document.getElementById("wasmTime").innerHTML = duration;
 }
 
 function removeAllChildNodes(parent) {
@@ -132,7 +141,7 @@ const displayFinalArray = (arr) => {
   var results = document.getElementById("subarrays");
   removeAllChildNodes(results);
   arr.forEach((subArr) => {
-    console.log(subArr);
+    //console.log(subArr);
     results.innerHTML += `<p>${subArr}</p>`;
   });
 };
@@ -140,3 +149,42 @@ const displayFinalArray = (arr) => {
 Module().then((mymod) => {
   mod = mymod;
 });
+
+function GenArray(){
+  console.log("GEN");
+  // Primero obtenemos el Target Value (Suma) y el  largo deseado del arreglo a generar
+  var targetNum = document.getElementById("target").value;
+  var inputLength = document.getElementById("arrLength").value;
+  // Luego calculamos aleatorio los elementos de ese arreglo y lo mostramos
+  var targetArray = calcTargetArray(targetNum, inputLength);
+  document.getElementById("array").innerHTML = targetArray;
+
+  Calculate();
+}
+
+async function CalculateJS(){
+  var start = Date.now();
+  console.log("CalulcateJS");
+  var tArray = "["+document.getElementById("array").innerHTML+"]";
+  tArray = JSON.parse(tArray);
+  console.log(tArray);
+  var targetNum = document.getElementById("target").value;
+  console.log(targetNum);
+  var results = await timeParticion(tArray, targetNum);
+  console.log(results);
+  var subarrays = "";
+  results[0].forEach((r) => {
+    subarrays = subarrays + r.toString() + "<br>";
+    console.log(subarrays)
+  })
+  document.getElementById("subarraysJS").innerHTML = subarrays;
+
+  var duration = Date.now() - start;
+
+  document.getElementById("jsTime").innerHTML = duration;
+}
+
+function Calculate(){
+  CalculateC();
+  CalculateJS();
+}

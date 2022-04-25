@@ -9,7 +9,7 @@ h1 {
 body {
   display: flex;
   justify-content: center;
-  overflow: hidden;
+  overflow: scroll;
   height: 100vh;
   background: linear-gradient(
     0deg,
